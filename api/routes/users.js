@@ -122,23 +122,19 @@ router.get("/cartList", (req,res,next) => {
 //6.购物车删除
 router.post("/cartDel", (req,res,next) => {
   let userId = req.cookies.userId,productId = req.body.productId;
-  User.update({
-        userId:userId
-      },{
+  User.update({userId:userId},{
       $pull:{
-        'cartList':{
-          productId
-        }
+        'cartList':{productId}
       }
     }, (err,doc) => {
       if(err){
-        res.json({
+        return res.json({
           status:'1',
           msg:err.message,
           result:''
         });
       }
-      res.json({
+      return res.json({
         status:'0',
         msg:'',
         result:'suc'
@@ -248,7 +244,7 @@ router.post("/setDefault", (req,res,next) => {
         item.isDefault = false;
       }
     });
-
+    
     doc.save((err1,doc1) => {
       if(err){
         return res.json({
@@ -265,6 +261,40 @@ router.post("/setDefault", (req,res,next) => {
     })
   });
 });
+//添加收货地址
+router.post("/addAddress", (req, res) => {
+  let { userId } = req.cookies
+  let { userName, streetName, postCode, tel } = req.body
+  let addressId = (new Date()).getTime() + parseInt(Math.random() * 9999) + parseInt(Math.random() * 9999)
+  User.findOne({ userId }, (err, doc) => {
+    console.log(doc)
+    if (err) {
+      return res.json({
+        status: '1',
+        msg: err.message
+      })
+    }
+    doc.addressList.push({
+      addressId,
+      userName,
+      streetName,
+      postCode,
+      tel
+    })
+    doc.save((err, doc) => {
+      if (err) {
+        return res.json({
+          status: '1',
+          msg: err.message
+        })
+      }
+      res.json({
+        status: '0',
+        msg: '添加收货地址成功'
+      })
+    })
+  })
+})
 
 //11.删除地址接口
 router.post("/delAddress", (req,res,next) => {
